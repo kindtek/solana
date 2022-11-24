@@ -4,7 +4,6 @@ set -x
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
 source ci/rust-version.sh
-echo "rust_stable_docker_image:::::: $rust_stable_docker_image"
 
 CHANNEL_OR_TAG=
 if [[ -n "$CI_TAG" ]]; then
@@ -17,7 +16,6 @@ if [[ -z $CHANNEL_OR_TAG ]]; then
   echo Unable to determine channel or tag to publish into, but NOT exiting.
   echo "^^^ +++"
   CHANNEL_OR_TAG=master
-  cd ../
   # exit 0
 fi
 
