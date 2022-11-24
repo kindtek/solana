@@ -13,9 +13,10 @@ else
 fi
 
 if [[ -z $CHANNEL_OR_TAG ]]; then
-  echo Unable to determine channel or tag to publish into, exiting.
+  echo Unable to determine channel or tag to publish into, but NOT exiting.
   echo "^^^ +++"
-  exit 0
+  CHANNEL_OR_TAG=master
+  # exit 0
 fi
 
 cd "$(dirname "$0")"
@@ -30,7 +31,7 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t solanalabs/solana:"$CHANNEL_OR_TAG" .
+docker build -t kindtek/solana:"$CHANNEL_OR_TAG" .
 
 maybeEcho=
 if [[ -z $CI ]]; then
