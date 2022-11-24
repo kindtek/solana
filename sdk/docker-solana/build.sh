@@ -39,7 +39,7 @@ if [[ -z $CI ]]; then
   maybeEcho="echo"
 else
   (
-    set +x
+    # set +x
     if [[ -n $DOCKER_PASSWORD && -n $DOCKER_USERNAME ]]; then
       echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
     fi
