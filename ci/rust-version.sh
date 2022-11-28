@@ -2,7 +2,7 @@
 # This file maintains the rust versions for use by CI.
 #
 # Obtain the environment variables without any automatic toolchain updating:
-#   $ source ci/rust-version.sh
+source ci/rust-version.sh
 #
 # Obtain the environment variables updating both stable and nightly, only stable, or
 # only nightly:
