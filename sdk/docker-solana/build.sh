@@ -33,16 +33,3 @@ cp -f ../../fetch-spl.sh usr/bin/
 
 docker build -t kindtek/solana:"$CHANNEL_OR_TAG" .
 
-maybeEcho=
-if [[ -z $CI ]]; then
-  echo "Not CI, skipping |docker push|"
-  maybeEcho="echo"
-else
-  (
-    # set +x
-    if [[ -n $DOCKER_PASSWORD && -n $DOCKER_USERNAME ]]; then
-      echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-    fi
-  )
-fi
-$maybeEcho docker push solanalabs/solana:"$CHANNEL_OR_TAG"
