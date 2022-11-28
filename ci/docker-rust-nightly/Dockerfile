@@ -1,4 +1,4 @@
-FROM solanalabs/rust:1.65.0
+FROM kindtek/rust:1.65.0
 ARG date
 
 RUN set -x \

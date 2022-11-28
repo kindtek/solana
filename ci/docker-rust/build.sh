@@ -10,10 +10,10 @@ if [[ $(uname -m) = arm64 ]]; then
   platform+=(--platform linux/amd64)
 fi
 
-docker build "${platform[@]}" -t solanalabs/rust .
+docker build "${platform[@]}" -t kindtek/rust .
 
-read -r rustc version _ < <(docker run solanalabs/rust rustc --version)
+read -r rustc version _ < <(docker run kindtek/rust rustc --version)
 [[ $rustc = rustc ]]
-docker tag solanalabs/rust:latest solanalabs/rust:"$version"
-docker push solanalabs/rust:"$version"
-docker push solanalabs/rust:latest
+docker tag kindtek/rust:latest kindtek/rust:"$version"
+docker push kindtek/rust:"$version"
+docker push kindtek/rust:latest
