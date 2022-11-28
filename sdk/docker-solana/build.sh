@@ -44,4 +44,4 @@ else
     fi
   )
 fi
-$maybeEcho docker push solanalabs/solana:"$CHANNEL_OR_TAG"
+$maybeEcho docker push kindtek/solana:"$CHANNEL_OR_TAG"
