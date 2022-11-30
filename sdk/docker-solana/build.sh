@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
-set -x
-
-CHANNEL=sdb_dev-sol
-CI_TAG=dev
+set -ex
 
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
@@ -33,7 +30,7 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t kindtek/solana:"$CHANNEL_OR_TAG" .
+docker build -t kindtek/sdb_dev-sol:"$CHANNEL_OR_TAG" .
 
 maybeEcho=
 if [[ -z $CI ]]; then
@@ -47,4 +44,4 @@ else
     fi
   )
 fi
-$maybeEcho docker push kindtek/solana:"$CHANNEL_OR_TAG"
+$maybeEcho docker push kindtek/sdb_dev-sol:"$CHANNEL_OR_TAG"
