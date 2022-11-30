@@ -26,14 +26,13 @@ cd "$(dirname "$0")"
 # ../../ci/docker-run.sh "$rust_stable_docker_image" \
 # sdk/docker-solana/usr
 
-../../ci/docker-run.sh "$rust_stable_docker_image" 
+docker run --workdir /solana --volume /sdb/solana:/solana --rm --volume /sdb/solana:/home --env HOME=/home --security-opt seccomp=unconfined --user 0:0 kindtek/rust:1.65.0
 
 # cp -f ../../scripts/run.sh usr/bin/solana-run.sh
 # cp -f ../../fetch-spl.sh usr/bin/
-(
-  cd usr/bin
-  ./fetch-spl.sh
-)
+cd usr/bin
+./fetch-spl.sh
+
 
 docker build -t kindtek/solana:"$CHANNEL_OR_TAG" .
 
