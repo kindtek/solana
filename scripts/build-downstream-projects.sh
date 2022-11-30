@@ -56,7 +56,7 @@ spl() {
     )
     set -x
     rm -rf spl
-    git clone https://github.com/solana-labs/solana-program-library.git spl
+    git clone https://github.com/kindtek/solana-program-library.git spl
     cd spl
 
     project_used_solana_version=$(sed -nE 's/solana-sdk = \"[>=<~]*(.*)\"/\1/p' <"token/program/Cargo.toml")

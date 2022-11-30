@@ -60,7 +60,7 @@ edge|beta)
   DOWNLOAD_URL=https://release.solana.com/"$TAG"/solana-release-$TARGET.tar.bz2
   ;;
 *)
-  DOWNLOAD_URL=https://github.com/solana-labs/solana/releases/download/"$TAG"/solana-release-$TARGET.tar.bz2
+  DOWNLOAD_URL=https://github.com/kindtek/solana/releases/download/"$TAG"/solana-release-$TARGET.tar.bz2
   ;;
 esac
 

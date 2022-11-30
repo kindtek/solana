@@ -74,7 +74,7 @@ budget, or exceeds a bound, the entire invocation chain and the top level
 transaction processing are halted.
 
 The current [compute
-budget](https://github.com/solana-labs/solana/blob/090e11210aa7222d8295610a6ccac4acda711bb9/program-runtime/src/compute_budget.rs#L26-L87) can be found in the Solana Program Runtime.
+budget](https://github.com/kindtek/solana/blob/090e11210aa7222d8295610a6ccac4acda711bb9/program-runtime/src/compute_budget.rs#L26-L87) can be found in the Solana Program Runtime.
 
 #### Example Compute Budget
 
@@ -113,12 +113,12 @@ for more information.
 A transaction may set the maximum number of compute units it is allowed to
 consume and the compute unit price by including a `SetComputeUnitLimit` and a
 `SetComputeUnitPrice`
-[Compute budget instructions](https://github.com/solana-labs/solana/blob/db32549c00a1b5370fcaf128981ad3323bbd9570/sdk/src/compute_budget.rs#L22)
+[Compute budget instructions](https://github.com/kindtek/solana/blob/db32549c00a1b5370fcaf128981ad3323bbd9570/sdk/src/compute_budget.rs#L22)
 respectively.
 
 If no `SetComputeUnitLimit` is provided the limit will be calculated as the
 product of the number of instructions in the transaction (excluding the [Compute
-budget instructions](https://github.com/solana-labs/solana/blob/db32549c00a1b5370fcaf128981ad3323bbd9570/sdk/src/compute_budget.rs#L22)) and the default per-instruction units, which is currently 200k.
+budget instructions](https://github.com/kindtek/solana/blob/db32549c00a1b5370fcaf128981ad3323bbd9570/sdk/src/compute_budget.rs#L22)) and the default per-instruction units, which is currently 200k.
 
 > **NOTE:** A transaction's [prioritization fee](./../../terminology.md#prioritization-fee) is calculated by multiplying the
 > number of _compute units_ by the _compute unit price_ (measured in micro-lamports)

@@ -2,7 +2,7 @@
 name = "solana-zk-token-proof-program"
 description = "Solana Zk Token Proof Program"
 authors = ["Solana Maintainers <maintainers@solana.foundation>"]
-repository = "https://github.com/solana-labs/solana"
+repository = "https://github.com/kindtek/solana"
 version = "1.15.0"
 license = "Apache-2.0"
 edition = "2021"

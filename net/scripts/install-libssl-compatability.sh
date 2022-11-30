@@ -11,5 +11,5 @@ apt-get --assume-yes install libssl-dev
 # Install libssl1.1 to be compatible with binaries built in the
 # kindtek/rust docker image
 #
-# cc: https://github.com/solana-labs/solana/issues/1090
+# cc: https://github.com/kindtek/solana/issues/1090
 apt-get --assume-yes install libssl1.1

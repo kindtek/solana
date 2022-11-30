@@ -5,7 +5,7 @@ developers to jump into any file in the codebase and not need to adapt to
 inconsistencies in how the code is written. The codebase should appear as if it
 had been authored by a single developer. If you don't agree with a convention,
 submit a PR patching this document and let's discuss! Once the PR is accepted,
-*all* code should be updated as soon as possible to reflect the new
+_all_ code should be updated as soon as possible to reflect the new
 conventions.
 
 ## Pull Requests
@@ -61,7 +61,7 @@ may be pulled in with a package manager.
 There is no single person assigned to watching GitHub PR queue and ushering you
 through the process. Typically, you will ask the person that wrote a component
 to review changes to it. You can find the author using `git blame` or asking on
-Discord.  When working to get your PR merged, it's most important to understand
+Discord. When working to get your PR merged, it's most important to understand
 that changing the code is your priority and not necessarily a priority of the
 person you need an approval from. Also, while you may interact the most with
 the component author, you should aim to be inclusive of others. Providing a
@@ -79,7 +79,7 @@ each time you push a commit to get past CI or until they "mute" the PR. Once
 muted, you'll need to reach out over some other medium, such as Discord, to
 request they have another look. When you use draft PRs, no notifications are
 sent when you push commits and edit the PR description. Use draft PRs
-liberally.  Don't bug the humans until you have gotten past the bots.
+liberally. Don't bug the humans until you have gotten past the bots.
 
 ### What should be in my PR description?
 
@@ -98,8 +98,8 @@ reading the PR problem description. If what is described there doesn't look
 more important than competing issues, don't expect the reviewer to read on.
 
 Next, the reviewer will read the proposed changes. At this point, the reviewer
-needs to be convinced the proposed changes are a *good* solution to the problem
-described above.  If the proposed changes, not the code changes, generates
+needs to be convinced the proposed changes are a _good_ solution to the problem
+described above. If the proposed changes, not the code changes, generates
 discussion, consider closing the PR and returning with a design proposal
 instead.
 
@@ -117,16 +117,16 @@ attempts to consider every ambiguity in your implementation.
 The PR title should contain a brief summary of the change, from the perspective
 of the user. Examples of good titles:
 
-* Add rent to accounts
-* Fix out-of-memory error in validator
-* Clean up `process_message()` in runtime
+- Add rent to accounts
+- Fix out-of-memory error in validator
+- Clean up `process_message()` in runtime
 
 The conventions here are all the same as a good git commit title:
 
-* First word capitalized and in the imperative mood, not past tense ("add", not
+- First word capitalized and in the imperative mood, not past tense ("add", not
   "added")
-* No trailing period
-* What was done, whom it was done to, and in what context
+- No trailing period
+- What was done, whom it was done to, and in what context
 
 ### The PR Problem Statement
 
@@ -147,25 +147,26 @@ generous (and not expected) to rebase or reword commits such that each change
 matches the logical flow in your PR description.
 
 ### The PR / Issue Labels
-Labels make it easier to manage and track PRs / issues.  Below some common labels
-that we use in Solana.  For the complete list of labels, please refer to the
-[label page](https://github.com/solana-labs/solana/issues/labels):
 
-* "feature-gate": when you add a new feature gate or modify the behavior of
-an existing feature gate, please add the "feature-gate" label to your PR.
-New feature gates should also always have a corresponding tracking issue
-(go to "New Issue" -> "Feature Gate Tracker [Get Started](https://github.com/solana-labs/solana/issues/new?assignees=&labels=feature-gate&template=1-feature-gate.yml&title=Feature+Gate%3A+)")
-and should be updated each time the feature is activated on a cluster.
+Labels make it easier to manage and track PRs / issues. Below some common labels
+that we use in Solana. For the complete list of labels, please refer to the
+[label page](https://github.com/kindtek/solana/issues/labels):
 
-* "automerge": When a PR is labelled with "automerge", the PR will be
-automically merged once CI passes.  In general, this label should only
-be used for small hot-fix (fewer than 100 lines) or automatic generated
-PRs.  If you're uncertain, it's usually the case that the PR is not
-qualified as "automerge".
+- "feature-gate": when you add a new feature gate or modify the behavior of
+  an existing feature gate, please add the "feature-gate" label to your PR.
+  New feature gates should also always have a corresponding tracking issue
+  (go to "New Issue" -> "Feature Gate Tracker [Get Started](https://github.com/kindtek/solana/issues/new?assignees=&labels=feature-gate&template=1-feature-gate.yml&title=Feature+Gate%3A+)")
+  and should be updated each time the feature is activated on a cluster.
 
-* "good first issue": If you happen to find an issue that is non-urgent and
-self-contained with moderate scope, you might want to consider attaching
-"good first issue" to it as it might be a good practice for newcomers.
+- "automerge": When a PR is labelled with "automerge", the PR will be
+  automically merged once CI passes. In general, this label should only
+  be used for small hot-fix (fewer than 100 lines) or automatic generated
+  PRs. If you're uncertain, it's usually the case that the PR is not
+  qualified as "automerge".
+
+- "good first issue": If you happen to find an issue that is non-urgent and
+  self-contained with moderate scope, you might want to consider attaching
+  "good first issue" to it as it might be a good practice for newcomers.
 
 ### When will my PR be reviewed?
 
@@ -180,9 +181,9 @@ closed automatically 7 days later.
 
 After a reviewer provides feedback, you can quickly say "acknowledged, will
 fix" using a thumb's up emoji. If you're confident your fix is exactly as
-prescribed, add a reply "Fixed in COMMIT\_HASH" and mark the comment as
+prescribed, add a reply "Fixed in COMMIT_HASH" and mark the comment as
 resolved. If you're not sure, reply "Is this what you had in mind?
-COMMIT\_HASH" and if so, the reviewer will reply and mark the conversation as
+COMMIT_HASH" and if so, the reviewer will reply and mark the conversation as
 resolved. Marking conversations as resolved is an excellent way to engage more
 reviewers. Leaving conversations open may imply the PR is not yet ready for
 additional review.
@@ -190,7 +191,7 @@ additional review.
 ### When will my PR be re-reviewed?
 
 Recall that once your PR is opened, a notification is sent every time you push
-a commit.  After a reviewer adds feedback, they won't be checking on the status
+a commit. After a reviewer adds feedback, they won't be checking on the status
 of that feedback after every new commit. Instead, directly mention the reviewer
 when you feel your PR is ready for another pass.
 
@@ -202,7 +203,7 @@ maintainers without triggering notifications as you make changes. When you feel
 your PR is ready for a broader audience, you can transition your draft PR to a
 standard PR with the click of a button.
 
-Do not add reviewers to draft PRs.  GitHub doesn't automatically clear
+Do not add reviewers to draft PRs. GitHub doesn't automatically clear
 approvals when you click "Ready for Review", so a review that meant "I approve
 of the direction" suddenly has the appearance of "I approve of these changes."
 Instead, add a comment that mentions the usernames that you would like a review
@@ -210,34 +211,33 @@ from. Ask explicitly what you would like feedback on.
 
 ## Rust coding conventions
 
-* All Rust code is formatted using the latest version of `rustfmt`. Once
+- All Rust code is formatted using the latest version of `rustfmt`. Once
   installed, it will be updated automatically when you update the compiler with
-`rustup`.
+  `rustup`.
 
-* All Rust code is linted with Clippy. If you'd prefer to ignore its advice, do
+- All Rust code is linted with Clippy. If you'd prefer to ignore its advice, do
   so explicitly:
 
-  ```rust #[allow(clippy::too_many_arguments)] ```
+  `rust #[allow(clippy::too_many_arguments)] `
 
   Note: Clippy defaults can be overridden in the top-level file `.clippy.toml`.
 
-* For variable names, when in doubt, spell it out. The mapping from type names
+- For variable names, when in doubt, spell it out. The mapping from type names
   to variable names is to lowercase the type name, putting an underscore before
-each capital letter. Variable names should *not* be abbreviated unless being
-used as closure arguments and the brevity improves readability. When a function
-has multiple instances of the same type, qualify each with a prefix and
-underscore (i.e. alice\_keypair) or a numeric suffix (i.e. tx0).
+  each capital letter. Variable names should _not_ be abbreviated unless being
+  used as closure arguments and the brevity improves readability. When a function
+  has multiple instances of the same type, qualify each with a prefix and
+  underscore (i.e. alice_keypair) or a numeric suffix (i.e. tx0).
 
-* For function and method names, use `<verb>_<subject>`. For unit tests, that
+- For function and method names, use `<verb>_<subject>`. For unit tests, that
   verb should always be `test` and for benchmarks the verb should always be
-`bench`. Avoid namespacing function names with some arbitrary word. Avoid
-abbreviating words in function names.
+  `bench`. Avoid namespacing function names with some arbitrary word. Avoid
+  abbreviating words in function names.
 
-* As they say, "When in Rome, do as the Romans do." A good patch should
+- As they say, "When in Rome, do as the Romans do." A good patch should
   acknowledge the coding conventions of the code that surrounds it, even in the
-case where that code has not yet been updated to meet the conventions described
-here.
-
+  case where that code has not yet been updated to meet the conventions described
+  here.
 
 ## Terminology
 
@@ -246,7 +246,6 @@ used and understood. Avoid introducing new 3-letter terms, which can be
 confused with 3-letter acronyms.
 
 [Terms currently in use](docs/src/terminology.md)
-
 
 ## Design Proposals
 

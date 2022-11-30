@@ -87,7 +87,7 @@ pub use {
 };
 
 // get_max_thread_count to match number of threads in the old code.
-// see: https://github.com/solana-labs/solana/pull/24853
+// see: https://github.com/kindtek/solana/pull/24853
 lazy_static! {
     static ref PAR_THREAD_POOL: ThreadPool = rayon::ThreadPoolBuilder::new()
         .num_threads(get_max_thread_count())
@@ -3608,7 +3608,7 @@ fn find_slot_meta_in_cached_state<'a>(
 /// [`cf::Orphans`].
 ///
 /// For more information about the chaining, check the previous discussion here:
-/// https://github.com/solana-labs/solana/pull/2253
+/// https://github.com/kindtek/solana/pull/2253
 ///
 /// Arguments:
 /// - `db`: the blockstore db that stores both shreds and their metadata.

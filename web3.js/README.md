@@ -6,8 +6,8 @@
 [![semantic-release][semantic-release-image]][semantic-release-url]
 [![code-style-prettier][code-style-prettier-image]][code-style-prettier-url]
 
-[codecov-image]: https://codecov.io/gh/solana-labs/solana-web3.js/branch/master/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/solana-labs/solana-web3.js
+[codecov-image]: https://codecov.io/gh/kindtek/solana-web3.js/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/kindtek/solana-web3.js
 [npm-image]: https://img.shields.io/npm/v/@solana/web3.js.svg?style=flat
 [npm-downloads-image]: https://img.shields.io/npm/dm/@solana/web3.js.svg?style=flat
 [npm-url]: https://www.npmjs.com/package/@solana/web3.js
@@ -117,7 +117,7 @@ node_modules/@solana/web3.js/module.flow.js
 
 ## Releases
 
-Releases are available on [Github](https://github.com/solana-labs/solana-web3.js/releases)
+Releases are available on [Github](https://github.com/kindtek/solana-web3.js/releases)
 and [npmjs.com](https://www.npmjs.com/package/@solana/web3.js)
 
 Each Github release features a tarball containing API documentation and a
@@ -126,7 +126,7 @@ minified version of the module suitable for direct use in a browser environment
 
 ## Contributing
 
-If you have an issue to report or would like to contribute a pull request, please do so against the monorepo at https://github.com/solana-labs/solana. We are not able to merge pull requests into the mirror repo https://github.com/solana-labs/solana-web3.js and issues filed there may go unnoticed.
+If you have an issue to report or would like to contribute a pull request, please do so against the monorepo at https://github.com/kindtek/solana. We are not able to merge pull requests into the mirror repo https://github.com/kindtek/solana-web3.js and issues filed there may go unnoticed.
 
 ## Disclaimer
 

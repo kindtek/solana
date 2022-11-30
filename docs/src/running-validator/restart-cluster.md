@@ -9,7 +9,7 @@ solana-ledger-tool -l ledger latest-optimistic-slots
 ```
 
 In Solana 1.13 or less, the latest optimistically confirmed can be found by looking for the more recent occurrence of
-[this](https://github.com/solana-labs/solana/blob/0264147d42d506fb888f5c4c021a998e231a3e74/core/src/optimistic_confirmation_verifier.rs#L71)
+[this](https://github.com/kindtek/solana/blob/0264147d42d506fb888f5c4c021a998e231a3e74/core/src/optimistic_confirmation_verifier.rs#L71)
 metrics datapoint.
 
 Call this slot `SLOT_X`
@@ -58,7 +58,7 @@ Post something like the following to #announcements (adjusting the text as appro
 >
 > Steps:
 >
-> 1. Install the v1.1.12 release: https://github.com/solana-labs/solana/releases/tag/v1.1.12
+> 1. Install the v1.1.12 release: https://github.com/kindtek/solana/releases/tag/v1.1.12
 > 2. a. Preferred method, start from your local ledger with:
 >
 > ```bash

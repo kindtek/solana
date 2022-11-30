@@ -7727,7 +7727,7 @@ impl Bank {
             });
 
             // As a workaround for
-            // https://github.com/solana-labs/solana-program-library/issues/374, ensure that the
+            // https://github.com/kindtek/solana-program-library/issues/374, ensure that the
             // spl-token 2 native mint account is owned by the spl-token 2 program.
             let old_account_data_size;
             let store = if let Some(existing_native_mint_account) =
@@ -17338,7 +17338,7 @@ pub(crate) mod tests {
         );
         // TODO: stakes cache should be hardened for the case when the account
         // owner is changed from vote/stake program to something else. see:
-        // https://github.com/solana-labs/solana/pull/24200#discussion_r849935444
+        // https://github.com/kindtek/solana/pull/24200#discussion_r849935444
         check_stake_vote_account_validity(
             false, // check owner change
             |bank: &Bank| bank.load_vote_and_stake_accounts(&thread_pool, null_tracer()),

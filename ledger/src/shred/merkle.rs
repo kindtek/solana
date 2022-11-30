@@ -394,7 +394,7 @@ impl ShredTrait for ShredData {
     const SIZE_OF_HEADERS: usize = SIZE_OF_DATA_SHRED_HEADERS;
 
     fn from_payload(mut payload: Vec<u8>) -> Result<Self, Error> {
-        // see: https://github.com/solana-labs/solana/pull/10109
+        // see: https://github.com/kindtek/solana/pull/10109
         if payload.len() < Self::SIZE_OF_PAYLOAD {
             return Err(Error::InvalidPayloadSize(payload.len()));
         }
@@ -465,7 +465,7 @@ impl ShredTrait for ShredCode {
             return Err(Error::InvalidShredVariant);
         }
         let coding_header = deserialize_from_with_limit(&mut cursor)?;
-        // see: https://github.com/solana-labs/solana/pull/10109
+        // see: https://github.com/kindtek/solana/pull/10109
         if payload.len() < Self::SIZE_OF_PAYLOAD {
             return Err(Error::InvalidPayloadSize(payload.len()));
         }
