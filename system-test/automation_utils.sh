@@ -211,7 +211,7 @@ function upload_results_to_slack() {
     BUILD_BUTTON_TEXT="Build Kite Job"
   else
     BUILD_BUTTON_TEXT="Build URL not defined"
-    BUILDKITE_BUILD_URL="https://buildkite.com/solana-labs/"
+    BUILDKITE_BUILD_URL="https://buildkite.com/kindtek/"
   fi
 
   GRAFANA_URL="https://internal-metrics.solana.com:3000/d/monitor-${CHANNEL:-edge}/cluster-telemetry-${CHANNEL:-edge}?var-testnet=${TESTNET_TAG:-testnet-automation}&from=${TESTNET_START_UNIX_MSECS:-0}&to=${TESTNET_FINISH_UNIX_MSECS:-0}"
@@ -310,7 +310,7 @@ function upload_results_to_discord() {
     BUILD_BUTTON_TEXT="Build Kite Job"
   else
     BUILD_BUTTON_TEXT="Build URL not defined"
-    BUILDKITE_BUILD_URL="https://buildkite.com/solana-labs/"
+    BUILDKITE_BUILD_URL="https://buildkite.com/kindtek/"
   fi
 
   GRAFANA_URL="https://internal-metrics.solana.com:3000/d/monitor-${CHANNEL:-edge}/cluster-telemetry-${CHANNEL:-edge}?var-testnet=${TESTNET_TAG:-testnet-automation}&from=${TESTNET_START_UNIX_MSECS:-0}&to=${TESTNET_FINISH_UNIX_MSECS:-0}"

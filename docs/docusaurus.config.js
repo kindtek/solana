@@ -7,7 +7,7 @@ module.exports = {
   url: "https://docs.solana.com",
   baseUrl: "/",
   favicon: "img/favicon.ico",
-  organizationName: "solana-labs", // Usually your GitHub org/user name.
+  organizationName: "kindtek", // Usually your GitHub org/user name.
   projectName: "solana", // Usually your repo name.
   onBrokenLinks: "throw",
   stylesheets: [
