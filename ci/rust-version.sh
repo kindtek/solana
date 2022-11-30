@@ -13,8 +13,7 @@
 # Then to build with either stable or nightly:
 #   $ cargo +"$rust_stable" build
 #   $ cargo +"$rust_nightly" build
-
-set -x
+#
 
 if [[ -n $RUST_STABLE_VERSION ]]; then
   stable_version="$RUST_STABLE_VERSION"
