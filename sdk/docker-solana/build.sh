@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -ex
+here=`pwd`
+HERE=`pwd`
 
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
