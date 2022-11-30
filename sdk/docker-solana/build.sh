@@ -23,8 +23,8 @@ fi
 
 cd "$(dirname "$0")"
 rm -rf usr/
-../../ci/docker-run.sh "$rust_stable_docker_image" \
-  scripts/cargo-install-all.sh sdk/docker-solana/usr
+../../ci/docker-run.sh "$rust_stable_docker_image" # \
+  # scripts/cargo-install-all.sh sdk/docker-solana/usr
 
 cp -f ../../scripts/run.sh usr/bin/solana-run.sh
 cp -f ../../fetch-spl.sh usr/bin/
