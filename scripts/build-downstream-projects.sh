@@ -23,7 +23,7 @@ example_helloworld() {
   (
     set -x
     rm -rf example-helloworld
-    git clone https://github.com/solana-labs/example-helloworld.git
+    git clone https://github.com/kindtek/example-helloworld.git
     cd example-helloworld
 
     update_solana_dependencies src/program-rust "$solana_ver"

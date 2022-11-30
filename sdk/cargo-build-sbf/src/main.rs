@@ -526,7 +526,7 @@ fn build_sbf_package(config: &Config, target_directory: &Path, package: &cargo_m
     install_if_missing(
         config,
         package,
-        "https://github.com/solana-labs/sbf-tools/releases/download",
+        "https://github.com/kindtek/sbf-tools/releases/download",
         sbf_tools_download_file_name,
         &target_path,
     )

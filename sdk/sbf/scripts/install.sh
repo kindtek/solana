@@ -108,7 +108,7 @@ if [[ ! -e sbf-tools-$version.md || ! -e sbf-tools ]]; then
     set -e
     rm -rf sbf-tools*
     job="download \
-           https://github.com/solana-labs/sbf-tools/releases/download \
+           https://github.com/kindtek/sbf-tools/releases/download \
            $version \
            solana-sbf-tools-$machine.tar.bz2 \
            sbf-tools"

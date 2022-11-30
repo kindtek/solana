@@ -103,7 +103,7 @@ let secretKey = Uint8Array.from([
 let keypair = Keypair.fromSecretKey(secretKey);
 ```
 
-Many wallets today allow users to bring their Keypair using a variety of extensions or web wallets. The general recommendation is to use wallets, not Keypairs, to sign transactions. The wallet creates a layer of separation between the dApp and the Keypair, ensuring that the dApp never has access to the secret key. You can find ways to connect to external wallets with the [wallet-adapter](https://github.com/solana-labs/wallet-adapter) library.
+Many wallets today allow users to bring their Keypair using a variety of extensions or web wallets. The general recommendation is to use wallets, not Keypairs, to sign transactions. The wallet creates a layer of separation between the dApp and the Keypair, ensuring that the dApp never has access to the secret key. You can find ways to connect to external wallets with the [wallet-adapter](https://github.com/kindtek/wallet-adapter) library.
 
 ### Creating and Sending Transactions
 
@@ -265,7 +265,7 @@ The `layout` in the allocate struct must always have `u32('instruction')` first 
 }
 ```
 
-`ns64('space')` is the argument for the `allocate` function. You can see in the original `allocate` function in Rust that space was of the type `u64`. `u64` is an unsigned 64bit integer. Javascript by default only provides up to 53bit integers. `ns64` comes from `@solana/buffer-layout` to help with type conversions between Rust and Javascript. You can find more type conversions between Rust and Javascript at [solana-labs/buffer-layout](https://github.com/solana-labs/buffer-layout).
+`ns64('space')` is the argument for the `allocate` function. You can see in the original `allocate` function in Rust that space was of the type `u64`. `u64` is an unsigned 64bit integer. Javascript by default only provides up to 53bit integers. `ns64` comes from `@solana/buffer-layout` to help with type conversions between Rust and Javascript. You can find more type conversions between Rust and Javascript at [solana-labs/buffer-layout](https://github.com/kindtek/buffer-layout).
 
 ```javascript
 let data = Buffer.alloc(allocateStruct.layout.span);

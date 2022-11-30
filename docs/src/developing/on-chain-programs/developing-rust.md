@@ -135,7 +135,7 @@ pub type ProcessInstruction =
 ```
 
 Refer to [helloworld's use of the
-entrypoint](https://github.com/solana-labs/example-helloworld/blob/1e049076e10be8712b1a725d2d886ce0cd036b2e/src/program-rust/src/lib.rs#L19)
+entrypoint](https://github.com/kindtek/example-helloworld/blob/1e049076e10be8712b1a725d2d886ce0cd036b2e/src/program-rust/src/lib.rs#L19)
 as an example of how things fit together.
 
 ### Parameter Deserialization
