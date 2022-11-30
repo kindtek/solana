@@ -28,8 +28,8 @@ cd "$(dirname "$0")"
 
 ../../ci/docker-run.sh "$rust_stable_docker_image" 
 
-cp -f ../../scripts/run.sh usr/bin/solana-run.sh
-cp -f ../../fetch-spl.sh usr/bin/
+# cp -f ../../scripts/run.sh usr/bin/solana-run.sh
+# cp -f ../../fetch-spl.sh usr/bin/
 (
   cd usr/bin
   ./fetch-spl.sh
