@@ -105,6 +105,9 @@ if [[ -z "$CHANNEL" ]]; then
   fi
 fi
 
+# default
+ CHANNEL_LATEST_TAG="$STABLE_CHANNEL_LATEST_TAG"
+
 if [[ $CHANNEL = beta ]]; then
   CHANNEL_LATEST_TAG="$BETA_CHANNEL_LATEST_TAG"
 elif [[ $CHANNEL = stable ]]; then
