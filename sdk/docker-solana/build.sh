@@ -22,7 +22,7 @@ if [[ -z $CHANNEL_OR_TAG ]]; then
 fi
 
 cd "$(dirname "$0")"
-rm -rf usr/
+# rm -rf usr/
 # ../../ci/docker-run.sh "$rust_stable_docker_image" \
 # sdk/docker-solana/usr
 
