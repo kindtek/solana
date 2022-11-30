@@ -11,8 +11,8 @@
 #   $ source ci/rust-version.sh nightly
 
 # Then to build with either stable or nightly:
-  $ cargo +"$rust_stable" build
-  $ cargo +"$rust_nightly" build
+#   $ cargo +"$rust_stable" build
+#   $ cargo +"$rust_nightly" build
 
 set -x
 
