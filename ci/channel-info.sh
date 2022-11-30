@@ -7,7 +7,6 @@
 #
 
 here="$(dirname "$0")"
-echo "\n------------\nhere = $here----------------\n\n"
 
 # shellcheck source=ci/semver_bash/semver.sh
 source "$here"/semver_bash/semver.sh
