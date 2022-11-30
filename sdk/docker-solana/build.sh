@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -x
 
-CHANNEL=sdb_dev
-CI_TAG=sdb_dev
+CHANNEL=sdb_dev-sol
+CI_TAG=sdb_dev-sol
 
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
