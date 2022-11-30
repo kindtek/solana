@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -x
 
+CHANNEL=sdb_dev
+
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
 source ci/rust-version.sh
