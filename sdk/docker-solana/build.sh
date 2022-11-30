@@ -26,8 +26,7 @@ cd "$(dirname "$0")"
 # ../../ci/docker-run.sh "$rust_stable_docker_image" \
 # sdk/docker-solana/usr
 
-../../ci/docker-run.sh "$rust_stable_docker_image" \
-sdk/docker-solana/usr
+../../ci/docker-run.sh "$rust_stable_docker_image" 
 
 cp -f ../../scripts/run.sh usr/bin/solana-run.sh
 cp -f ../../fetch-spl.sh usr/bin/
