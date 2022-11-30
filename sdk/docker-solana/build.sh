@@ -2,6 +2,7 @@
 set -x
 
 CHANNEL=sdb_dev
+CI_TAG=sdb_dev
 
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
