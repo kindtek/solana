@@ -30,10 +30,10 @@ fi
 
 
 export rust_stable="$stable_version"
-export rust_stable_docker_image=solana-labs/rust:"$stable_version"
+export rust_stable_docker_image=kindtek/rust:"$stable_version"
 
 export rust_nightly=nightly-"$nightly_version"
-export rust_nightly_docker_image=solana-labs/rust-nightly:"$nightly_version"
+export rust_nightly_docker_image=kindtek/rust-nightly:"$nightly_version"
 
 [[ -z $1 ]] || (
 
