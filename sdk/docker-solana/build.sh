@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -x
 
 cd "$(dirname "$0")"/../..
 eval "$(ci/channel-info.sh)"
