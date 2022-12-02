@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM alpine:latest
 
 # RPC JSON
 EXPOSE 8899/tcp
@@ -33,8 +33,9 @@ EXPOSE 8008/udp
 # tpu_vote
 EXPOSE 8009/udp
 
-RUN apt update && \
-    apt-get install -y bzip2 libssl-dev && \
+RUN apk update && \
+    apk add bzip2 libssl-dev && \
+    apk add bash && \
     rm -rf /var/lib/apt/lists/*
 
 COPY usr/bin /usr/bin/
