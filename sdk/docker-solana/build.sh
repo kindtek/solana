@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # alpine default
-/bin/bash build-alpine.sh
+/bin/bash $(pwd)/build-alpine.sh
