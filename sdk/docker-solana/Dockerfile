@@ -37,10 +37,11 @@ RUN apk update && \
     apk add bash && \
     apk add libc6-compat && \
     apk add gcompat && \
-    apk add musl && \
     apk add eudev-libs && \
     apk add libgcc && \
     apk add bzip2 libressl-dev && \
+    apk upgrade musl && \
+    apk upgrade && \
     rm -rf /var/lib/apt/lists/*
 
 COPY usr/bin /usr/bin/
