@@ -40,6 +40,10 @@ RUN apk update && \
     apk add eudev-libs && \
     apk add libgcc && \
     apk add bzip2 libressl-dev && \
+    #<debug
+    apk -UvX http://dl-4.alpinelinux.org/alpine/edge/main add -u nodejs && \
+RUN apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
+    #/debug>
     apk upgrade musl && \
     apk upgrade && \
     rm -rf /var/lib/apt/lists/*
