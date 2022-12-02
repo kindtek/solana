@@ -37,6 +37,7 @@ RUN apk update && \
     apk add bash && \
     apk add libc6-compat && \
     apk add gcompat && \
+    apk add musl && \
     apk add bzip2 libressl-dev && \
     rm -rf /var/lib/apt/lists/*
 
