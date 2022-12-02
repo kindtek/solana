@@ -34,8 +34,9 @@ EXPOSE 8008/udp
 EXPOSE 8009/udp
 
 RUN apk update && \
-    apk add bzip2 libressl-dev && \
     apk add bash && \
+    apk add libc6-compat && \
+    apk add bzip2 libressl-dev && \
     rm -rf /var/lib/apt/lists/*
 
 COPY usr/bin /usr/bin/
