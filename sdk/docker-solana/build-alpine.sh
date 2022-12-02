@@ -45,4 +45,4 @@ else
     fi
   )
 fi
-# $maybeEcho docker push kindtek/sdb_dev-sol:"$CHANNEL_OR_TAG"
+$maybeEcho docker push solana-safedb-alpine:"$CHANNEL_OR_TAG"
