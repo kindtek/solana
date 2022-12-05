@@ -1792,7 +1792,8 @@ fn rebuild_bank_from_snapshots(
     debug_keys: Option<Arc<HashSet<Pubkey>>>,
     additional_builtins: Option<&Builtins>,
     account_secondary_indexes: AccountSecondaryIndexes,
-    accounts_db_caching_enabled: bool,
+    // this parameter will be removed when all plumbing for disabling write cache is removed
+    _accounts_db_caching_enabled: bool,
     limit_load_slot_count_from_snapshot: Option<usize>,
     shrink_ratio: AccountShrinkThreshold,
     verify_index: bool,
@@ -1800,6 +1801,7 @@ fn rebuild_bank_from_snapshots(
     accounts_update_notifier: Option<AccountsUpdateNotifier>,
     exit: &Arc<AtomicBool>,
 ) -> Result<Bank> {
+    let accounts_db_caching_enabled = true;
     let (full_snapshot_version, full_snapshot_root_paths) =
         verify_unpacked_snapshots_dir_and_version(
             full_snapshot_unpacked_snapshots_dir_and_version,
@@ -2221,14 +2223,15 @@ pub fn package_and_archive_full_snapshot(
         None,
     )?;
 
+    let accounts_hash = bank.get_accounts_hash();
     crate::serde_snapshot::reserialize_bank_with_new_accounts_hash(
         accounts_package.snapshot_links_dir(),
         accounts_package.slot,
-        &bank.get_accounts_hash(),
+        &accounts_hash,
         None,
     );
 
-    let snapshot_package = SnapshotPackage::new(accounts_package, bank.get_accounts_hash());
+    let snapshot_package = SnapshotPackage::new(accounts_package, accounts_hash);
     archive_snapshot_package(
         &snapshot_package,
         full_snapshot_archives_dir,
@@ -2274,14 +2277,15 @@ pub fn package_and_archive_incremental_snapshot(
         None,
     )?;
 
+    let accounts_hash = bank.get_accounts_hash();
     crate::serde_snapshot::reserialize_bank_with_new_accounts_hash(
         accounts_package.snapshot_links_dir(),
         accounts_package.slot,
-        &bank.get_accounts_hash(),
+        &accounts_hash,
         None,
     );
 
-    let snapshot_package = SnapshotPackage::new(accounts_package, bank.get_accounts_hash());
+    let snapshot_package = SnapshotPackage::new(accounts_package, accounts_hash);
     archive_snapshot_package(
         &snapshot_package,
         full_snapshot_archives_dir,

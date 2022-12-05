@@ -24,8 +24,8 @@ use {
         accounts_background_service::{DroppedSlotsSender, SendDroppedBankCallback},
         accounts_cache::{AccountsCache, CachedAccount, SlotCache},
         accounts_hash::{
-            AccountsHasher, CalcAccountsHashConfig, CalculateHashIntermediate, HashStats,
-            PreviousPass,
+            AccountsHash, AccountsHasher, CalcAccountsHashConfig, CalculateHashIntermediate,
+            HashStats,
         },
         accounts_index::{
             AccountIndexGetResult, AccountSecondaryIndexes, AccountsIndex, AccountsIndexConfig,
@@ -42,7 +42,7 @@ use {
         },
         append_vec::{
             AppendVec, StorableAccountsWithHashesAndWriteVersions, StoredAccountMeta, StoredMeta,
-            StoredMetaWriteVersion,
+            StoredMetaWriteVersion, APPEND_VEC_MMAPPED_FILES_OPEN,
         },
         bank::Rewrites,
         cache_hash_data::{CacheHashData, CacheHashDataFile},
@@ -116,7 +116,6 @@ pub const DEFAULT_NUM_DIRS: u32 = 4;
 // When calculating hashes, it is helpful to break the pubkeys found into bins based on the pubkey value.
 // More bins means smaller vectors to sort, copy, etc.
 pub const PUBKEY_BINS_FOR_CALCULATING_HASHES: usize = 65536;
-pub const NUM_SCAN_PASSES_DEFAULT: usize = 2;
 
 // Without chunks, we end up with 1 output vec for each outer snapshot storage.
 // This results in too many vectors to be efficient.
@@ -319,10 +318,11 @@ struct ShrinkCollect<'a> {
     original_bytes: u64,
     /// ids of stores that were scanned during account collection
     store_ids: Vec<AppendVecId>,
-    aligned_total: u64,
+    aligned_total_bytes: u64,
     unrefed_pubkeys: Vec<&'a Pubkey>,
     alive_accounts: Vec<&'a FoundStoredAccount<'a>>,
-    alive_total: usize,
+    /// total size in storage of all alive accounts
+    alive_total_bytes: usize,
     total_starting_accounts: usize,
     /// true if all alive accounts are zero lamports
     all_are_zero_lamports: bool,
@@ -337,7 +337,6 @@ pub const ACCOUNTS_DB_CONFIG_FOR_TESTING: AccountsDbConfig = AccountsDbConfig {
     index: Some(ACCOUNTS_INDEX_CONFIG_FOR_TESTING),
     accounts_hash_cache_path: None,
     filler_accounts_config: FillerAccountsConfig::const_default(),
-    hash_calc_num_passes: None,
     write_cache_limit_bytes: None,
     skip_rewrites: false,
     ancient_append_vec_offset: None,
@@ -348,7 +347,6 @@ pub const ACCOUNTS_DB_CONFIG_FOR_BENCHMARKS: AccountsDbConfig = AccountsDbConfig
     index: Some(ACCOUNTS_INDEX_CONFIG_FOR_BENCHMARKS),
     accounts_hash_cache_path: None,
     filler_accounts_config: FillerAccountsConfig::const_default(),
-    hash_calc_num_passes: None,
     write_cache_limit_bytes: None,
     skip_rewrites: false,
     ancient_append_vec_offset: None,
@@ -359,8 +357,8 @@ pub const ACCOUNTS_DB_CONFIG_FOR_BENCHMARKS: AccountsDbConfig = AccountsDbConfig
 pub type BinnedHashData = Vec<Vec<CalculateHashIntermediate>>;
 
 struct LoadAccountsIndexForShrink<'a> {
-    /// number of alive accounts
-    alive_total: usize,
+    /// total stored bytes for all alive accounts
+    alive_total_bytes: usize,
     /// the specific alive accounts
     alive_accounts: Vec<&'a FoundStoredAccount<'a>>,
     /// pubkeys that were unref'd in the accounts index because they were dead
@@ -406,7 +404,6 @@ pub struct AccountsDbConfig {
     pub index: Option<AccountsIndexConfig>,
     pub accounts_hash_cache_path: Option<PathBuf>,
     pub filler_accounts_config: FillerAccountsConfig,
-    pub hash_calc_num_passes: Option<usize>,
     pub write_cache_limit_bytes: Option<u64>,
     pub skip_rewrites: bool,
     /// if None, ancient append vecs are disabled
@@ -1155,7 +1152,7 @@ impl BankHashStats {
 #[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq, AbiExample)]
 pub struct BankHashInfo {
     pub accounts_delta_hash: Hash,
-    pub accounts_hash: Hash,
+    pub accounts_hash: AccountsHash,
     pub stats: BankHashStats,
 }
 
@@ -1389,12 +1386,6 @@ pub struct AccountsDb {
     pub filler_account_slots_remaining: AtomicU64,
 
     pub(crate) verify_accounts_hash_in_bg: VerifyAccountsHashInBackground,
-
-    // # of passes should be a function of the total # of accounts that are active.
-    // higher passes = slower total time, lower dynamic memory usage
-    // lower passes = faster total time, higher dynamic memory usage
-    // passes=2 cuts dynamic memory usage in approximately half.
-    pub num_hash_scan_passes: Option<usize>,
 
     /// Used to disable logging dead slots during removal.
     /// allow disabling noisy log
@@ -1805,6 +1796,11 @@ impl LatestAccountsIndexRootsStats {
                 self.clean_dead_slot_us.swap(0, Ordering::Relaxed) as i64,
                 i64
             ),
+            (
+                "append_vecs_open",
+                APPEND_VEC_MMAPPED_FILES_OPEN.load(Ordering::Relaxed) as i64,
+                i64
+            )
         );
 
         // Don't need to reset since this tracks the latest updates, not a cumulative total
@@ -2277,30 +2273,12 @@ impl<'a> AppendVecScan for ScanState<'a> {
 
 impl AccountsDb {
     pub fn default_for_tests() -> Self {
-        Self::default_with_accounts_index(AccountInfoAccountsIndex::default_for_tests(), None, None)
-    }
-
-    /// return (num_hash_scan_passes, bins_per_pass)
-    fn bins_per_pass(num_hash_scan_passes: Option<usize>) -> (usize, usize) {
-        let num_hash_scan_passes = num_hash_scan_passes.unwrap_or(NUM_SCAN_PASSES_DEFAULT);
-        let bins_per_pass = PUBKEY_BINS_FOR_CALCULATING_HASHES / num_hash_scan_passes;
-        assert!(
-            num_hash_scan_passes <= PUBKEY_BINS_FOR_CALCULATING_HASHES,
-            "num_hash_scan_passes must be <= {}",
-            PUBKEY_BINS_FOR_CALCULATING_HASHES
-        );
-        assert_eq!(
-            bins_per_pass * num_hash_scan_passes,
-            PUBKEY_BINS_FOR_CALCULATING_HASHES
-        ); // evenly divisible
-
-        (num_hash_scan_passes, bins_per_pass)
+        Self::default_with_accounts_index(AccountInfoAccountsIndex::default_for_tests(), None)
     }
 
     fn default_with_accounts_index(
         accounts_index: AccountInfoAccountsIndex,
         accounts_hash_cache_path: Option<PathBuf>,
-        num_hash_scan_passes: Option<usize>,
     ) -> Self {
         let num_threads = get_thread_count();
         const MAX_READ_ONLY_CACHE_DATA_SIZE: usize = 400_000_000; // 400M bytes
@@ -2317,9 +2295,6 @@ impl AccountsDb {
 
         let mut bank_hashes = HashMap::new();
         bank_hashes.insert(0, BankHashInfo::default());
-
-        // validate inside here
-        Self::bins_per_pass(num_hash_scan_passes);
 
         // Increase the stack for accounts threads
         // rayon needs a lot of stack
@@ -2381,7 +2356,6 @@ impl AccountsDb {
             accounts_update_notifier: None,
             filler_accounts_config: FillerAccountsConfig::default(),
             filler_account_suffix: None,
-            num_hash_scan_passes,
             log_dead_slots: AtomicBool::new(true),
             exhaustively_verify_refcounts: false,
             epoch_accounts_hash_manager: EpochAccountsHashManager::new_invalid(),
@@ -2477,13 +2451,7 @@ impl AccountsDb {
                 .as_ref()
                 .and_then(|x| x.write_cache_limit_bytes),
             exhaustively_verify_refcounts,
-            ..Self::default_with_accounts_index(
-                accounts_index,
-                accounts_hash_cache_path,
-                accounts_db_config
-                    .as_ref()
-                    .and_then(|cfg| cfg.hash_calc_num_passes),
-            )
+            ..Self::default_with_accounts_index(accounts_index, accounts_hash_cache_path)
         };
         if paths_is_empty {
             // Create a temporary set of accounts directories, used primarily
@@ -3698,7 +3666,7 @@ impl AccountsDb {
         let mut alive_accounts = Vec::with_capacity(count);
         let mut unrefed_pubkeys = Vec::with_capacity(count);
 
-        let mut alive_total = 0;
+        let mut alive_total_bytes = 0;
 
         let mut alive = 0;
         let mut dead = 0;
@@ -3727,7 +3695,7 @@ impl AccountsDb {
                     } else {
                         all_are_zero_lamports &= stored_account.account.lamports() == 0;
                         alive_accounts.push(stored_account);
-                        alive_total += stored_account.account.stored_size;
+                        alive_total_bytes += stored_account.account.stored_size;
                         alive += 1;
                     }
                 }
@@ -3741,7 +3709,7 @@ impl AccountsDb {
         stats.dead_accounts.fetch_add(dead, Ordering::Relaxed);
 
         LoadAccountsIndexForShrink {
-            alive_total,
+            alive_total_bytes,
             alive_accounts,
             unrefed_pubkeys,
             all_are_zero_lamports,
@@ -3823,7 +3791,7 @@ impl AccountsDb {
         *stored_accounts = stored_accounts_temp;
 
         let mut index_read_elapsed = Measure::start("index_read_elapsed");
-        let alive_total_collect = AtomicUsize::new(0);
+        let alive_total_bytes_collect = AtomicUsize::new(0);
 
         let len = stored_accounts.len();
         let alive_accounts_collect = Mutex::new(Vec::with_capacity(len));
@@ -3837,7 +3805,7 @@ impl AccountsDb {
                 .par_chunks(SHRINK_COLLECT_CHUNK_SIZE)
                 .for_each(|stored_accounts| {
                     let LoadAccountsIndexForShrink {
-                        alive_total,
+                        alive_total_bytes,
                         mut alive_accounts,
                         mut unrefed_pubkeys,
                         all_are_zero_lamports,
@@ -3852,7 +3820,7 @@ impl AccountsDb {
                         .lock()
                         .unwrap()
                         .append(&mut unrefed_pubkeys);
-                    alive_total_collect.fetch_add(alive_total, Ordering::Relaxed);
+                    alive_total_bytes_collect.fetch_add(alive_total_bytes, Ordering::Relaxed);
                     if !all_are_zero_lamports {
                         *all_are_zero_lamports_collect.lock().unwrap() = false;
                     }
@@ -3861,35 +3829,35 @@ impl AccountsDb {
 
         let alive_accounts = alive_accounts_collect.into_inner().unwrap();
         let unrefed_pubkeys = unrefed_pubkeys_collect.into_inner().unwrap();
-        let alive_total = alive_total_collect.load(Ordering::Relaxed);
+        let alive_total_bytes = alive_total_bytes_collect.load(Ordering::Relaxed);
 
         index_read_elapsed.stop();
         stats
             .index_read_elapsed
             .fetch_add(index_read_elapsed.as_us(), Ordering::Relaxed);
 
-        let aligned_total: u64 = Self::page_align(alive_total as u64);
+        let aligned_total_bytes: u64 = Self::page_align(alive_total_bytes as u64);
 
         stats
             .accounts_removed
             .fetch_add(len - alive_accounts.len(), Ordering::Relaxed);
         stats.bytes_removed.fetch_add(
-            original_bytes.saturating_sub(aligned_total),
+            original_bytes.saturating_sub(aligned_total_bytes),
             Ordering::Relaxed,
         );
         stats
             .bytes_written
-            .fetch_add(aligned_total, Ordering::Relaxed);
+            .fetch_add(aligned_total_bytes, Ordering::Relaxed);
 
         assert_eq!(store_ids.len(), 1);
 
         ShrinkCollect {
             store_ids,
             original_bytes,
-            aligned_total,
+            aligned_total_bytes,
             unrefed_pubkeys,
             alive_accounts,
-            alive_total,
+            alive_total_bytes,
             total_starting_accounts: len,
             all_are_zero_lamports: all_are_zero_lamports_collect.into_inner().unwrap(),
         }
@@ -3934,7 +3902,7 @@ impl AccountsDb {
 
         // This shouldn't happen if alive_bytes/approx_stored_count are accurate
         if Self::should_not_shrink(
-            shrink_collect.aligned_total,
+            shrink_collect.aligned_total_bytes,
             shrink_collect.original_bytes,
             shrink_collect.store_ids.len(),
         ) {
@@ -3955,8 +3923,8 @@ impl AccountsDb {
             slot,
             shrink_collect.total_starting_accounts,
             total_accounts_after_shrink,
-            shrink_collect.alive_total,
-            shrink_collect.aligned_total,
+            shrink_collect.alive_total_bytes,
+            shrink_collect.aligned_total_bytes,
             shrink_collect.original_bytes,
         );
 
@@ -3965,7 +3933,7 @@ impl AccountsDb {
         let mut remove_old_stores_shrink_us = 0;
         let mut store_accounts_timing = StoreAccountsTiming::default();
         let mut find_alive_elapsed = Measure::start("find_alive_elapsed");
-        if shrink_collect.aligned_total > 0 {
+        if shrink_collect.aligned_total_bytes > 0 {
             let mut accounts = Vec::with_capacity(total_accounts_after_shrink);
             let mut hashes = Vec::with_capacity(total_accounts_after_shrink);
             let mut write_versions = Vec::with_capacity(total_accounts_after_shrink);
@@ -3978,7 +3946,7 @@ impl AccountsDb {
             find_alive_elapsed.stop();
 
             let (shrunken_store, time) =
-                measure!(self.get_store_for_shrink(slot, shrink_collect.aligned_total));
+                measure!(self.get_store_for_shrink(slot, shrink_collect.aligned_total_bytes));
             create_and_insert_store_elapsed_us = time.as_us();
 
             // here, we're writing back alive_accounts. That should be an atomic operation
@@ -4366,7 +4334,7 @@ impl AccountsDb {
     /// returns the pubkeys that are in 'accounts' that are already in 'existing_ancient_pubkeys'
     /// Also updated 'existing_ancient_pubkeys' to include all pubkeys in 'accounts' since they will soon be written into the ancient slot.
     fn get_keys_to_unref_ancient<'a>(
-        accounts: &'a [&StoredAccountMeta<'_>],
+        accounts: &'a [&FoundStoredAccount<'_>],
         existing_ancient_pubkeys: &mut HashSet<Pubkey>,
     ) -> HashSet<&'a Pubkey> {
         let mut unref = HashSet::<&Pubkey>::default();
@@ -4388,7 +4356,7 @@ impl AccountsDb {
     /// As a side effect, on exit, 'existing_ancient_pubkeys' will now contain all pubkeys in 'accounts'.
     fn unref_accounts_already_in_storage(
         &self,
-        accounts: &[&StoredAccountMeta<'_>],
+        accounts: &[&FoundStoredAccount<'_>],
         existing_ancient_pubkeys: &mut HashSet<Pubkey>,
     ) {
         let unref = Self::get_keys_to_unref_ancient(accounts, existing_ancient_pubkeys);
@@ -4580,6 +4548,7 @@ impl AccountsDb {
         let (to_store, find_alive_elapsed) = measure!(AccountsToStore::new(
             available_bytes,
             &shrink_collect.alive_accounts,
+            shrink_collect.alive_total_bytes,
             slot
         ));
 
@@ -4987,11 +4956,7 @@ impl AccountsDb {
             return;
         }
 
-        let new_hash_info = BankHashInfo {
-            accounts_delta_hash: Hash::default(),
-            accounts_hash: Hash::default(),
-            stats: BankHashStats::default(),
-        };
+        let new_hash_info = BankHashInfo::default();
         bank_hashes.insert(slot, new_hash_info);
     }
 
@@ -6931,7 +6896,7 @@ impl AccountsDb {
         &self,
         max_slot: Slot,
         config: &CalcAccountsHashConfig<'_>,
-    ) -> Result<(Hash, u64), BankHashVerificationError> {
+    ) -> Result<(AccountsHash, u64), BankHashVerificationError> {
         use BankHashVerificationError::*;
         let mut collect = Measure::start("collect");
         let keys: Vec<_> = self
@@ -7056,10 +7021,11 @@ impl AccountsDb {
         );
         self.assert_safe_squashing_accounts_hash(max_slot, config.epoch_schedule);
 
-        Ok((accumulated_hash, total_lamports))
+        let accounts_hash = AccountsHash(accumulated_hash);
+        Ok((accounts_hash, total_lamports))
     }
 
-    pub fn get_accounts_hash(&self, slot: Slot) -> Hash {
+    pub fn get_accounts_hash(&self, slot: Slot) -> AccountsHash {
         let bank_hashes = self.bank_hashes.read().unwrap();
         let bank_hash_info = bank_hashes.get(&slot).unwrap();
         bank_hash_info.accounts_hash
@@ -7071,7 +7037,7 @@ impl AccountsDb {
         ancestors: &Ancestors,
         debug_verify: bool,
         is_startup: bool,
-    ) -> (Hash, u64) {
+    ) -> (AccountsHash, u64) {
         self.update_accounts_hash(
             CalcAccountsHashDataSource::IndexForTests,
             debug_verify,
@@ -7403,7 +7369,7 @@ impl AccountsDb {
         data_source: CalcAccountsHashDataSource,
         slot: Slot,
         config: &CalcAccountsHashConfig<'_>,
-    ) -> Result<(Hash, u64), BankHashVerificationError> {
+    ) -> Result<(AccountsHash, u64), BankHashVerificationError> {
         match data_source {
             CalcAccountsHashDataSource::Storages => {
                 if self.accounts_cache.contains_any_slots(slot) {
@@ -7448,23 +7414,24 @@ impl AccountsDb {
         slot: Slot,
         config: CalcAccountsHashConfig<'_>,
         expected_capitalization: Option<u64>,
-    ) -> Result<(Hash, u64), BankHashVerificationError> {
-        let (hash, total_lamports) = self.calculate_accounts_hash(data_source, slot, &config)?;
+    ) -> Result<(AccountsHash, u64), BankHashVerificationError> {
+        let (accounts_hash, total_lamports) =
+            self.calculate_accounts_hash(data_source, slot, &config)?;
         if debug_verify {
             // calculate the other way (store or non-store) and verify results match.
             let data_source_other = match data_source {
                 CalcAccountsHashDataSource::IndexForTests => CalcAccountsHashDataSource::Storages,
                 CalcAccountsHashDataSource::Storages => CalcAccountsHashDataSource::IndexForTests,
             };
-            let (hash_other, total_lamports_other) =
+            let (accounts_hash_other, total_lamports_other) =
                 self.calculate_accounts_hash(data_source_other, slot, &config)?;
 
-            let success = hash == hash_other
+            let success = accounts_hash == accounts_hash_other
                 && total_lamports == total_lamports_other
                 && total_lamports == expected_capitalization.unwrap_or(total_lamports);
-            assert!(success, "calculate_accounts_hash_with_verify mismatch. hashes: {}, {}; lamports: {}, {}; expected lamports: {:?}, data source: {:?}, slot: {}", hash, hash_other, total_lamports, total_lamports_other, expected_capitalization, data_source, slot);
+            assert!(success, "calculate_accounts_hash_with_verify mismatch. hashes: {}, {}; lamports: {}, {}; expected lamports: {:?}, data source: {:?}, slot: {}", accounts_hash.0, accounts_hash_other.0, total_lamports, total_lamports_other, expected_capitalization, data_source, slot);
         }
-        Ok((hash, total_lamports))
+        Ok((accounts_hash, total_lamports))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -7478,9 +7445,9 @@ impl AccountsDb {
         epoch_schedule: &EpochSchedule,
         rent_collector: &RentCollector,
         is_startup: bool,
-    ) -> (Hash, u64) {
+    ) -> (AccountsHash, u64) {
         let check_hash = false;
-        let (hash, total_lamports) = self
+        let (accounts_hash, total_lamports) = self
             .calculate_accounts_hash_with_verify(
                 data_source,
                 debug_verify,
@@ -7497,15 +7464,15 @@ impl AccountsDb {
                 expected_capitalization,
             )
             .unwrap(); // unwrap here will never fail since check_hash = false
-        self.set_accounts_hash(slot, hash);
-        (hash, total_lamports)
+        self.set_accounts_hash(slot, accounts_hash);
+        (accounts_hash, total_lamports)
     }
 
     /// update hash for this slot in the 'bank_hashes' map
-    pub(crate) fn set_accounts_hash(&self, slot: Slot, hash: Hash) {
+    pub(crate) fn set_accounts_hash(&self, slot: Slot, accounts_hash: AccountsHash) {
         let mut bank_hashes = self.bank_hashes.write().unwrap();
         let mut bank_hash_info = bank_hashes.get_mut(&slot).unwrap();
-        bank_hash_info.accounts_hash = hash;
+        bank_hash_info.accounts_hash = accounts_hash;
     }
 
     /// scan 'storage', return a vec of 'CacheHashDataFile', one per pass
@@ -7625,75 +7592,62 @@ impl AccountsDb {
         config: &CalcAccountsHashConfig<'_>,
         storages: &SortedStorages<'_>,
         mut stats: HashStats,
-    ) -> Result<(Hash, u64), BankHashVerificationError> {
+    ) -> Result<(AccountsHash, u64), BankHashVerificationError> {
         let _guard = self.active_stats.activate(ActiveStatItem::Hash);
         stats.oldest_root = storages.range().start;
 
         self.mark_old_slots_as_dirty(storages, config.epoch_schedule.slots_per_epoch, &mut stats);
 
-        let (num_hash_scan_passes, bins_per_pass) = Self::bins_per_pass(self.num_hash_scan_passes);
         let use_bg_thread_pool = config.use_bg_thread_pool;
         let mut scan_and_hash = || {
-            let mut previous_pass = PreviousPass::default();
-            let mut final_result = (Hash::default(), 0);
-
             let cache_hash_data = self.get_cache_hash_data(config, storages.max_slot_inclusive());
 
-            for pass in 0..num_hash_scan_passes {
-                let bounds = Range {
-                    start: pass * bins_per_pass,
-                    end: (pass + 1) * bins_per_pass,
-                };
+            let bounds = Range {
+                start: 0,
+                end: PUBKEY_BINS_FOR_CALCULATING_HASHES,
+            };
 
-                let hash = AccountsHasher {
-                    filler_account_suffix: if self.filler_accounts_config.count > 0 {
-                        self.filler_account_suffix
-                    } else {
-                        None
-                    },
-                };
+            let hash = AccountsHasher {
+                filler_account_suffix: if self.filler_accounts_config.count > 0 {
+                    self.filler_account_suffix
+                } else {
+                    None
+                },
+            };
 
-                // get raw data by scanning
-                let result = self.scan_snapshot_stores_with_cache(
-                    &cache_hash_data,
-                    storages,
-                    &mut stats,
-                    PUBKEY_BINS_FOR_CALCULATING_HASHES,
-                    &bounds,
-                    config,
-                    hash.filler_account_suffix.as_ref(),
-                )?;
+            // get raw data by scanning
+            let result = self.scan_snapshot_stores_with_cache(
+                &cache_hash_data,
+                storages,
+                &mut stats,
+                PUBKEY_BINS_FOR_CALCULATING_HASHES,
+                &bounds,
+                config,
+                hash.filler_account_suffix.as_ref(),
+            )?;
 
-                // convert mmapped cache files into slices of data
-                let slices = result
-                    .iter()
-                    .map(|d| d.get_cache_hash_data())
-                    .collect::<Vec<_>>();
+            // convert mmapped cache files into slices of data
+            let slices = result
+                .iter()
+                .map(|d| d.get_cache_hash_data())
+                .collect::<Vec<_>>();
 
-                // rework slices of data into bins for parallel processing and to match data shape expected by 'rest_of_hash_calculation'
-                let result = AccountsHasher::get_binned_data(
-                    &slices,
-                    PUBKEY_BINS_FOR_CALCULATING_HASHES,
-                    &bounds,
-                );
+            // rework slices of data into bins for parallel processing and to match data shape expected by 'rest_of_hash_calculation'
+            let result = AccountsHasher::get_binned_data(
+                &slices,
+                PUBKEY_BINS_FOR_CALCULATING_HASHES,
+                &bounds,
+            );
 
-                // turn raw data into merkle tree hashes and sum of lamports
-                let (hash, lamports, for_next_pass) = hash.rest_of_hash_calculation(
-                    result,
-                    &mut stats,
-                    pass == num_hash_scan_passes - 1,
-                    previous_pass,
-                    bins_per_pass,
-                );
-                previous_pass = for_next_pass;
-                final_result = (hash, lamports);
-            }
+            // turn raw data into merkle tree hashes and sum of lamports
+            let final_result = hash.rest_of_hash_calculation(result, &mut stats);
 
             info!(
                 "calculate_accounts_hash_from_storages: slot: {} {:?}",
                 storages.max_slot_inclusive(),
                 final_result
             );
+            let final_result = (AccountsHash(final_result.0), final_result.1);
             Ok(final_result)
         };
 
@@ -7777,21 +7731,22 @@ impl AccountsDb {
         use BankHashVerificationError::*;
 
         let check_hash = false; // this will not be supported anymore
-        let (calculated_hash, calculated_lamports) = self.calculate_accounts_hash_with_verify(
-            CalcAccountsHashDataSource::Storages,
-            test_hash_calculation,
-            slot,
-            CalcAccountsHashConfig {
-                use_bg_thread_pool,
-                check_hash,
-                ancestors: Some(ancestors),
-                epoch_schedule,
-                rent_collector,
-                store_detailed_debug_info_on_failure: store_hash_raw_data_for_debug,
-                full_snapshot: None,
-            },
-            None,
-        )?;
+        let (calculated_accounts_hash, calculated_lamports) = self
+            .calculate_accounts_hash_with_verify(
+                CalcAccountsHashDataSource::Storages,
+                test_hash_calculation,
+                slot,
+                CalcAccountsHashConfig {
+                    use_bg_thread_pool,
+                    check_hash,
+                    ancestors: Some(ancestors),
+                    epoch_schedule,
+                    rent_collector,
+                    store_detailed_debug_info_on_failure: store_hash_raw_data_for_debug,
+                    full_snapshot: None,
+                },
+                None,
+            )?;
 
         if calculated_lamports != total_lamports {
             warn!(
@@ -7806,12 +7761,12 @@ impl AccountsDb {
         } else {
             let bank_hashes = self.bank_hashes.read().unwrap();
             if let Some(found_hash_info) = bank_hashes.get(&slot) {
-                if calculated_hash == found_hash_info.accounts_hash {
+                if calculated_accounts_hash == found_hash_info.accounts_hash {
                     Ok(())
                 } else {
                     warn!(
-                        "mismatched bank hash for slot {}: {} (calculated) != {} (expected)",
-                        slot, calculated_hash, found_hash_info.accounts_hash
+                        "mismatched bank hash for slot {}: {:?} (calculated) != {:?} (expected)",
+                        slot, calculated_accounts_hash, found_hash_info.accounts_hash,
                     );
                     Err(MismatchedBankHash)
                 }
@@ -10009,7 +9964,8 @@ pub mod tests {
         };
         let found = FoundStoredAccount { account, store_id };
         let map = vec![&found];
-        let to_store = AccountsToStore::new(available_bytes, &map, slot0);
+        let alive_total_bytes = found.account.stored_size;
+        let to_store = AccountsToStore::new(available_bytes, &map, alive_total_bytes, slot0);
         // Done: setup 'to_store'
 
         current_ancient.create_ancient_append_vec(slot0, &db);
@@ -10120,8 +10076,25 @@ pub mod tests {
             stored_size,
             hash: &hash,
         };
+        let store_id = 0;
+        let found_account = FoundStoredAccount {
+            account: stored_account,
+            store_id,
+        };
+        let found_account2 = FoundStoredAccount {
+            account: stored_account2,
+            store_id,
+        };
+        let found_account3 = FoundStoredAccount {
+            account: stored_account3,
+            store_id,
+        };
+        let found_account4 = FoundStoredAccount {
+            account: stored_account4,
+            store_id,
+        };
         let mut existing_ancient_pubkeys = HashSet::default();
-        let accounts = [&stored_account];
+        let accounts = [&found_account];
         // pubkey NOT in existing_ancient_pubkeys, so do NOT unref, but add to existing_ancient_pubkeys
         let unrefs =
             AccountsDb::get_keys_to_unref_ancient(&accounts, &mut existing_ancient_pubkeys);
@@ -10139,7 +10112,7 @@ pub mod tests {
         );
         assert_eq!(unrefs.iter().cloned().collect::<Vec<_>>(), vec![&pubkey]);
         // pubkey2 NOT in existing_ancient_pubkeys, so do NOT unref, but add to existing_ancient_pubkeys
-        let accounts = [&stored_account2];
+        let accounts = [&found_account2];
         let unrefs =
             AccountsDb::get_keys_to_unref_ancient(&accounts, &mut existing_ancient_pubkeys);
         assert!(unrefs.is_empty());
@@ -10162,7 +10135,7 @@ pub mod tests {
         );
         assert_eq!(unrefs.iter().cloned().collect::<Vec<_>>(), vec![&pubkey2]);
         // pubkey3/4 NOT in existing_ancient_pubkeys, so do NOT unref, but add to existing_ancient_pubkeys
-        let accounts = [&stored_account3, &stored_account4];
+        let accounts = [&found_account3, &found_account4];
         let unrefs =
             AccountsDb::get_keys_to_unref_ancient(&accounts, &mut existing_ancient_pubkeys);
         assert!(unrefs.is_empty());
@@ -10624,7 +10597,8 @@ pub mod tests {
             )
             .unwrap();
         let expected_hash = Hash::from_str("GKot5hBsd81kMupNCXHaqbhv3huEbxAFMLnpcX2hniwn").unwrap();
-        assert_eq!(result, (expected_hash, 0));
+        let expected_accounts_hash = AccountsHash(expected_hash);
+        assert_eq!(result, (expected_accounts_hash, 0));
     }
 
     #[test]
@@ -10646,7 +10620,8 @@ pub mod tests {
             )
             .unwrap();
 
-        assert_eq!(result, (expected_hash, sum));
+        let expected_accounts_hash = AccountsHash(expected_hash);
+        assert_eq!(result, (expected_accounts_hash, sum));
     }
 
     fn sample_storage() -> (SnapshotStorages, usize, Slot) {
@@ -12934,7 +12909,7 @@ pub mod tests {
         let some_bank_hash = Hash::new(&[0xca; HASH_BYTES]);
         let bank_hash_info = BankHashInfo {
             accounts_delta_hash: some_bank_hash,
-            accounts_hash: Hash::new(&[0xca; HASH_BYTES]),
+            accounts_hash: AccountsHash(Hash::new(&[0xca; HASH_BYTES])),
             stats: BankHashStats::default(),
         };
         db.bank_hashes
@@ -17660,7 +17635,7 @@ pub mod tests {
                                 let alive_total_one_account = 136 + space;
                                 if alive {
                                     assert_eq!(
-                                        shrink_collect.aligned_total,
+                                        shrink_collect.aligned_total_bytes,
                                         PAGE_SIZE
                                             * if account_count >= 100 {
                                                 4
@@ -17670,19 +17645,25 @@ pub mod tests {
                                                 1
                                             }
                                     );
-                                    let mut expected_alive_total =
+                                    let mut expected_alive_total_bytes =
                                         alive_total_one_account * normal_account_count;
                                     if append_opposite_zero_lamport_account {
                                         // zero lamport accounts store size=0 data
-                                        expected_alive_total -= space;
+                                        expected_alive_total_bytes -= space;
                                     }
-                                    assert_eq!(shrink_collect.alive_total, expected_alive_total);
+                                    assert_eq!(
+                                        shrink_collect.alive_total_bytes,
+                                        expected_alive_total_bytes
+                                    );
                                 } else if append_opposite_alive_account {
-                                    assert_eq!(shrink_collect.aligned_total, 4096);
-                                    assert_eq!(shrink_collect.alive_total, alive_total_one_account);
+                                    assert_eq!(shrink_collect.aligned_total_bytes, 4096);
+                                    assert_eq!(
+                                        shrink_collect.alive_total_bytes,
+                                        alive_total_one_account
+                                    );
                                 } else {
-                                    assert_eq!(shrink_collect.aligned_total, 0);
-                                    assert_eq!(shrink_collect.alive_total, 0);
+                                    assert_eq!(shrink_collect.aligned_total_bytes, 0);
+                                    assert_eq!(shrink_collect.alive_total_bytes, 0);
                                 }
                                 assert_eq!(shrink_collect.original_bytes, 102400);
                                 assert_eq!(
