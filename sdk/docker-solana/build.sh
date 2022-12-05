@@ -30,7 +30,7 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t kindtek/solana-safedb-debian:kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG"-A.1-bullseye .
+docker build -t kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG"-A.1-bullseye .
 docker tag kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG"-A.1-bullseye kindtek/solana-safedb-debian:latest
 
 maybeEcho=
