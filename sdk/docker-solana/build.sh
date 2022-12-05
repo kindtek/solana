@@ -29,7 +29,6 @@ cp -f ../../fetch-spl.sh usr/bin/
   cd usr/bin
   ./fetch-spl.sh
 )
-SDB_
 
 docker build -t kindtek/solana-safedb-"$SOLANA_BUILD_ENV":"$SOLANA_CHANNEL_OR_TAG"-"$SDB_VERSION"-"$SOLANA_BUILD_ENV_VERSION" .
 docker tag "$SDB_SOL_DOCKER_IMG":"$SDB_SOL_DOCKER_TAG" "$SDB_SOL_DOCKER":latest
