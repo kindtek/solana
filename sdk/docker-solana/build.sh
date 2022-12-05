@@ -30,8 +30,8 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG"-A.1-bullseye .
-docker tag kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG"-A.1-bullseye kindtek/solana-safedb-debian:latest
+docker build -t kindtek/solana-safedb-"$SOLANA_BUILD_ENV":"$SOLANA_CHANNEL_OR_TAG"-"$SDB_VERSION"-"$SOLANA_BUILD_ENV_VERSION" .
+docker tag "$SDB_SOL_DOCKER_IMG":"$SDB_SOL_DOCKER_TAG" "$SDB_SOL_DOCKER":latest
 
 maybeEcho=
 if [[ -z $CI ]]; then
