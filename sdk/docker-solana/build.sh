@@ -30,8 +30,8 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t kindtek/solana-safedb-alpine:"$CHANNEL_OR_TAG" .
-docker tag kindtek/solana-safedb-alpine:"$CHANNEL_OR_TAG" kindtek/solana-safedb-alpine:latest
+docker build -t kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG" .
+docker tag kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG" kindtek/solana-safedb-debian:latest
 
 maybeEcho=
 if [[ -z $CI ]]; then
@@ -45,4 +45,4 @@ else
     fi
   )
 fi
-# $maybeEcho docker push kindtek/sdb_dev-sol:"$CHANNEL_OR_TAG"
+$maybeEcho docker push kindtek/solana-safedb-debian:"$CHANNEL_OR_TAG"
