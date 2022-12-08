@@ -30,7 +30,7 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG .
+docker build -f Dockerfile.alpine -t $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG .
 docker tag $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG "${SDB_SOL_DOCKER_IMG}:latest"
 
 maybeEcho=
