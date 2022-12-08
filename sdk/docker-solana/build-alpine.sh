@@ -32,6 +32,7 @@ cp -f ../../fetch-spl.sh usr/bin/
 
 docker build -f Dockerfile.alpine -t $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG .
 docker tag $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG "${SDB_SOL_DOCKER_IMG}:latest"
+docker tag $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG kindtek/solana-alpine:latest
 
 maybeEcho=
 if [[ -z $CI ]]; then
