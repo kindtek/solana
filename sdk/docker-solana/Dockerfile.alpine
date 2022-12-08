@@ -33,20 +33,31 @@ EXPOSE 8008/udp
 # tpu_vote
 EXPOSE 8009/udp
 
-RUN apk update && \
-    apk upgrade && \
-    apk --no-cache add bash curl wget bzip2 libressl-dev \
-# RUN apk --no-cache add libc6-compat && \
-#     apk --no-cache add gcompat && \
-#     apk --no-cache add eudev-libs && \
-#     apk --no-cache add libgcc && \
-#     apk --no-cache add bzip2 libressl-dev && \
-#     # <debug
-#     apk -UvX http://dl-4.alpinelinux.org/alpine/edge/main add -u nodejs && \
-#     apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
-#     # /debug>
-#     apk upgrade musl && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk --no-cache update && \
+    apk --no-cache add \
+    bash \
+    curl \
+    bzip2 \
+    cargo \
+    eudev-dev \
+    libc6-compat \
+    libgcc \
+    libressl-dev \
+    gcompat \
+    eudev-libs \
+    # # <debug
+    # apk -UvX http://dl-4.alpinelinux.org/alpine/edge/main add -u nodejs && \
+    # apk add --no-cache mono --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing && \
+    # # /debug>
+    linux-headers \
+    make \
+    musl \
+    musl-dev \
+    musl-utils \
+    musl-libintl \
+    wget && \
+    apk --no-cache upgrade musl && \
+    apk --no-cache upgrade
 
 COPY usr/bin /usr/bin/
 ENTRYPOINT [ "/usr/bin/solana-run.sh" ]
