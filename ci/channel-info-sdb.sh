@@ -7,7 +7,7 @@
 #
 
 # shellcheck source=ci/semver_bash/semver.sh
-source semver_bash/semver.sh
+source ci/semver_bash/semver.sh
 
 remote=https://github.com/kindtek/solana.git
 
