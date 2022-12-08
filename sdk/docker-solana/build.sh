@@ -30,19 +30,8 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -t $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG .
-docker tag $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG "${SDB_SOL_DOCKER_IMG}:latest"
+docker build -f Dockerfile.alpine -t ${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-alpine_debug}:${SDB_SOL_DOCKER_TAG:-latest_debug} .
+docker tag ${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-alpine_debug}:$SDB_SOL_DOCKER_TAG "${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-alpine_debug}:latest"
+docker tag $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG kindtek/solana-alpine:latest
 
-maybeEcho=
-if [[ -z $CI ]]; then
-  echo "Not CI, skipping |docker push|"
-  maybeEcho="echo"
-else
-  (
-    set +x
-    if [[ -n $DOCKER_PASSWORD && -n $DOCKER_USERNAME ]]; then
-      echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-    fi
-  )
-fi
-$maybeEcho docker push $$SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG
+docker push ${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-alpine_debug}:${SDB_SOL_DOCKER_TAG:-latest_debug}
