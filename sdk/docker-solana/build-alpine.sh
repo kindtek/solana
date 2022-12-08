@@ -45,5 +45,5 @@ if [[ -z $CI ]]; then
 #       echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
 #     fi
 #   )
-# fi
+fi
 $maybeEcho docker push $$SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG
