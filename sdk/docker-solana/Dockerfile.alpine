@@ -56,7 +56,6 @@ RUN apk --no-cache update && \
     musl-dev \
     musl-utils \
     musl-libintl \
-    openssl-dev \
     pkgconfig \
     rustup \
     wget && \
