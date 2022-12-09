@@ -34,6 +34,30 @@ EXPOSE 8008/udp
 EXPOSE 8009/udp
 RUN apk --no-cache update && \
     apk --no-cache add \
+    binutils \
+    file \
+    file-dev \
+    gcc \
+    glib \
+    glib-dev \
+    ipset \
+    ipset-dev \
+    iptables \
+    iptables-dev \
+    libmnl-dev \
+    libnftnl-dev \
+    libnl3 \
+    libnl3-dev \
+    make \
+    musl-dev \
+    net-snmp-dev \
+    openssl \
+    openssl-dev \
+    openssl-libs-static \
+    pcre2 \
+    pcre2-dev \
+    autoconf \
+    automake zlib-static  alpine-sdk linux-headers  libmnl-static git \
     bash \
     curl \
     bzip2 \
@@ -55,6 +79,8 @@ RUN apk --no-cache update && \
     musl \
     musl-dev \
     musl-utils \
+    musl-libintl \
+    openssl-dev \
     pkgconfig \
     rustup \
     wget && \
