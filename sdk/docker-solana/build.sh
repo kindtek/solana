@@ -30,8 +30,8 @@ cp -f ../../fetch-spl.sh usr/bin/
   ./fetch-spl.sh
 )
 
-docker build -f Dockerfile.debian -t ${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-debian_debug}:${SDB_SOL_DOCKER_TAG:-latest_debug} .
-docker tag ${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-debian_debug}:$SDB_SOL_DOCKER_TAG "${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-debian_debug}:latest"
+docker build -f Dockerfile.debian -t ${SDB_SOL_DOCKER_IMG:-kindtek/solana-sdb-debian_debug}:${SDB_SOL_DOCKER_TAG:-latest_debug} .
+docker tag ${SDB_SOL_DOCKER_IMG:-kindtek/solana-sdb-debian_debug}:$SDB_SOL_DOCKER_TAG "${SDB_SOL_DOCKER_IMG:-kindtek/solana-sdb-debian_debug}:latest"
 docker tag $SDB_SOL_DOCKER_IMG:$SDB_SOL_DOCKER_TAG kindtek/solana-debian:latest
 
-docker push ${SDB_SOL_DOCKER_IMG:-kindtek/solana-safedb-debian_debug}:${SDB_SOL_DOCKER_TAG:-latest_debug}
+docker push ${SDB_SOL_DOCKER_IMG:-kindtek/solana-sdb-debian_debug}:${SDB_SOL_DOCKER_TAG:-latest_debug}
